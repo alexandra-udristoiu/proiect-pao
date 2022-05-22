@@ -25,24 +25,20 @@ public class Author extends Person {
 		books.remove(book);
 	}
 
-	@Override
-	public void printInformation() {
-		System.out.println("Author " + this.id + " " + this.firstName + " " + this.lastName);
-		System.out.println("Number of books by this author " + books.size());
-	}
-	
-	public void printBooksByAuthor() {
-		for (Book b : books) {
-			b.printInformation();
-		}
-	}
-
 	public Set<Book> getBooks() {
 		return books;
 	}
 	
 	public int getId() {
 		return id;
+	}
+	
+	@Override
+	public String toString() {
+		return new StringBuilder()
+				.append("Author " + this.id + " " + this.firstName + " " + this.lastName + "\n")
+				.append("Number of books by this author " + books.size())
+				.toString();
 	}
 	
 }

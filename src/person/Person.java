@@ -18,8 +18,6 @@ public abstract class Person {
 	public String getFirstName() {
 		return firstName;
 	}
-	
-	public abstract void printInformation();
 
 	public void setLastName(String lastName) {
 		this.lastName = lastName;

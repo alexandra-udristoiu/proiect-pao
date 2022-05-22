@@ -13,4 +13,6 @@ public interface Service {
 	void addFromCsv(String[] strings);
 	
 	List<String> getStringsForCsv();
+	
+	void getFromDatabase();
 }

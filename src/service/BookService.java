@@ -3,9 +3,15 @@ package service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import entity.FictionBookEntity;
+import entity.NonfictionBookEntity;
+import entity.TextBookEntity;
 import exception.DuplicateIdException;
 import exception.WrongInputException;
 import person.Author;
@@ -13,14 +19,17 @@ import products.Book;
 import products.FictionBook;
 import products.NonfictionBook;
 import products.TextBook;
+import repository.FictionBookRepository;
+import repository.NonfictionBookRepository;
+import repository.TextBookRepository;
 
 public class BookService implements Service {
 	
 	private static BookService instance = null;
 	
-	private TreeSet<Book> books;
+	private Set<Book> books;
 	
-	private HashMap<String, Book> booksMap;
+	private Map<String, Book> booksMap;
 	
 	private Scanner scanner;
 	
@@ -41,6 +50,8 @@ public class BookService implements Service {
 		Book book = booksMap.remove(isbn);
 		books.remove(book);
 		book.getAuthor().removeBook(book);
+		
+		book.getRepository().delete(isbn);
 	}
 	
 	public void deleteBook() {
@@ -50,13 +61,19 @@ public class BookService implements Service {
 	}
 	
 	public void printBooks() {
-		for (Book b : books) {
-			b.printInformation();
+		for (Book book : books) {
+			System.out.println(book);
 		}
 	}
 	
 	public Book getBookById(String isbn) {
 		return booksMap.get(isbn);
+	}
+	
+	private void addBook(Book book) {
+		books.add(book);
+		booksMap.put(book.getIsbn(), book);
+		book.getAuthor().addBook(book);
 	}
 	
 	public void addBook() throws WrongInputException, DuplicateIdException {
@@ -66,72 +83,84 @@ public class BookService implements Service {
 		if (author == null) {
 			throw new WrongInputException("Author does not exist");
 		}
+		System.out.println("ISBN:");
+		String isbn = scanner.next();
+		if (booksMap.containsKey(isbn)) {
+			throw new DuplicateIdException();
+		}
 		Book book;
 		System.out.println("Book type (1 fiction, 2 nonfiction, 3 textbook):");
 		int bookType = scanner.nextInt();
 		switch (bookType) {
 		case 1:
-			book = createFictionBook(author);
+			book = createFictionBook(author, isbn);
 			break;
 		case 2:
-			book = createNonFicitonBook(author);
+			book = createNonFicitonBook(author, isbn);
 			break;
 		case 3:
-			book = createTextBook(author);
+			book = createTextBook(author, isbn);
 			break;
 		default:
 			throw new WrongInputException("Book type does not exist");
 		}
-		if (booksMap.containsKey(book.getIsbn())) {
-			throw new DuplicateIdException();
-		}
-		books.add(book);
-		booksMap.put(book.getIsbn(), book);
-		author.addBook(book);
+		addBook(book);
 	}
 
-	private Book createFictionBook(Author author) {
+	private Book createFictionBook(Author author, String isbn) {
 		System.out.println("Title:");
-		String title = scanner.next();
-		System.out.println("ISBN:");
-		String isbn = scanner.next();
-		System.out.println("Number of pages");
+		scanner.nextLine();
+		String title = scanner.nextLine();
+		System.out.println("Number of pages:");
 		int numberOfPages = scanner.nextInt();
 		System.out.println("Price:");
 		float price = scanner.nextFloat();
+		System.out.println("Products in stock:");
+		int productsInStock = scanner.nextInt();
 		System.out.println("Genre:");
 		String genre = scanner.next();
-		return new FictionBook(title, author, isbn, numberOfPages, price, 0, genre);
+		
+		FictionBookRepository.getInstance().add(new FictionBookEntity(isbn, title, author.getId(), numberOfPages, price, 0, productsInStock, genre));
+		
+		return new FictionBook(title, author, isbn, numberOfPages, price, productsInStock, genre);
 	}
 
-	private Book createNonFicitonBook(Author author) {
+	private Book createNonFicitonBook(Author author, String isbn) {
 		System.out.println("Title:");
-		String title = scanner.next();
-		System.out.println("ISBN:");
-		String isbn = scanner.next();
-		System.out.println("Number of pages");
+		scanner.nextLine();
+		String title = scanner.nextLine();
+		System.out.println("Number of pages:");
 		int numberOfPages = scanner.nextInt();
 		System.out.println("Price:");
 		float price = scanner.nextFloat();
+		System.out.println("Products in stock:");
+		int productsInStock = scanner.nextInt();
 		System.out.println("Domain:");
 		String domain = scanner.next();
-		return new NonfictionBook(title, author, isbn, numberOfPages, price, 0, domain);
+		
+		NonfictionBookRepository.getInstance().add(new NonfictionBookEntity(isbn, title, author.getId(), numberOfPages, price, 0, productsInStock, domain));
+		
+		return new NonfictionBook(title, author, isbn, numberOfPages, price, productsInStock, domain);
 	}
 
-	private Book createTextBook(Author author) {
+	private Book createTextBook(Author author, String isbn) {
 		System.out.println("Title:");
-		String title = scanner.next();
-		System.out.println("ISBN:");
-		String isbn = scanner.next();
-		System.out.println("Number of pages");
+		scanner.nextLine();
+		String title = scanner.nextLine();
+		System.out.println("Number of pages:");
 		int numberOfPages = scanner.nextInt();
 		System.out.println("Price:");
 		float price = scanner.nextFloat();
+		System.out.println("Products in stock:");
+		int productsInStock = scanner.nextInt();
 		System.out.println("Subject:");
 		String subject = scanner.next();
 		System.out.println("Grade:");
 		int grade = scanner.nextInt();
-		return new TextBook(title, author, isbn, numberOfPages, price, 0, subject, grade);
+		
+		TextBookRepository.getInstance().add(new TextBookEntity(isbn, title, author.getId(), numberOfPages, price, 0, productsInStock, subject, grade));
+		
+		return new TextBook(title, author, isbn, numberOfPages, price, productsInStock, subject, grade);
 	}
 	
 	public void addInStock() throws WrongInputException {
@@ -142,7 +171,10 @@ public class BookService implements Service {
 		}
 		System.out.println("Number of products added:");
 		int number = scanner.nextInt();
-		booksMap.get(isbn).addInStock(number);
+		Book book = booksMap.get(isbn);
+		book.addInStock(number);
+		
+		book.getRepository().updateStock(isbn, book.getProductsInStock());
 	}
 	
 	public void setBookDiscount() throws WrongInputException {
@@ -156,7 +188,20 @@ public class BookService implements Service {
 		if (discount < 0 || discount >= 1) {
 			throw new WrongInputException("Discount must be between 0 and 1");
 		}
-		booksMap.get(isbn).setDiscount(discount);
+		Book book = booksMap.get(isbn);
+		book.setDiscount(discount);
+		
+		book.getRepository().updateDiscount(isbn, discount);
+	}
+	
+	public void printBooksInStock() {
+		List<Book> booksInStock = books.stream()
+				.filter(book -> book.checkInStock())
+				.sorted((x, y) -> Float.compare(x.getCurrentPrice(), y.getCurrentPrice()))
+				.collect(Collectors.toList());
+		for (Book book : booksInStock) {
+			System.out.println(book);
+		}
 	}
 	
 	@Override
@@ -166,6 +211,7 @@ public class BookService implements Service {
 		System.out.println("3 - Print books");
 		System.out.println("4 - Add book in stock");
 		System.out.println("5 - Set book discount");
+		System.out.println("6 - Print books in stock sorted by price");
 	}
 
 	@Override
@@ -203,6 +249,10 @@ public class BookService implements Service {
 				e.printStackTrace();
 			}
 			AuditService.getInstance().addAction("Set book discount");
+			break;
+		case 6:
+			printBooksInStock();
+			AuditService.getInstance().addAction("Print books in stock sorted by price");
 		}
 	}
 
@@ -256,6 +306,33 @@ public class BookService implements Service {
 			strings.add(current);
 		}
 		return strings;
+	}
+
+	@Override
+	public void getFromDatabase() {
+		List<FictionBookEntity> fictionBookEntities = FictionBookRepository.getInstance().getAll();
+		for (FictionBookEntity entity : fictionBookEntities) {
+			Author author = AuthorService.getInstance().getAuthorById(entity.getAuthorId());
+			Book book = new FictionBook(entity.getTitle(), author, entity.getIsbn(), entity.getNumberOfPages(), entity.getPrice(), entity.getProductsInStock(), 
+					entity.getGenre());
+			this.addBook(book);
+		}
+		
+		List<NonfictionBookEntity> nonfictionBookEntities = NonfictionBookRepository.getInstance().getAll();
+		for (NonfictionBookEntity entity : nonfictionBookEntities) {
+			Author author = AuthorService.getInstance().getAuthorById(entity.getAuthorId());
+			Book book = new NonfictionBook(entity.getTitle(), author, entity.getIsbn(), entity.getNumberOfPages(), entity.getPrice(), entity.getProductsInStock(), 
+					entity.getDomain());
+			this.addBook(book);
+		}
+		
+		List<TextBookEntity> textBookEntities = TextBookRepository.getInstance().getAll();
+		for (TextBookEntity entity : textBookEntities) {
+			Author author = AuthorService.getInstance().getAuthorById(entity.getAuthorId());
+			Book book = new TextBook(entity.getTitle(), author, entity.getIsbn(), entity.getNumberOfPages(), entity.getPrice(), entity.getProductsInStock(), 
+					entity.getSubject(), entity.getGrade());
+			this.addBook(book);
+		}
 	}
 	
 }

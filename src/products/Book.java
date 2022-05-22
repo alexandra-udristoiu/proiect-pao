@@ -1,7 +1,10 @@
 package products;
 
+import java.util.Objects;
+
 import person.Author;
 import person.Customer;
+import repository.BookRepository;
 
 public abstract class Book implements Product, Comparable<Book> {
 
@@ -21,14 +24,14 @@ public abstract class Book implements Product, Comparable<Book> {
 	
 	protected BookReview bookReview;
 
-	public Book(String title, Author author, String isbn, int pages, float price, int numberInStock) {
+	public Book(String title, Author author, String isbn, int pages, float price, int productsInStock) {
 		this.title = title;
 		this.author = author;
 		this.isbn = isbn;
 		this.numberOfPages = pages;
 		this.price = price;
 		this.discount = 0;
-		this.productsInStock = numberInStock;
+		this.productsInStock = productsInStock;
 		this.bookReview = new BookReview();
 	}
 
@@ -97,8 +100,6 @@ public abstract class Book implements Product, Comparable<Book> {
 		return true;
 	}
 	
-	public abstract void printInformation();
-	
 	@Override
 	public int compareTo(Book o) {
 		if (title.compareTo(o.title) != 0) {
@@ -106,11 +107,13 @@ public abstract class Book implements Product, Comparable<Book> {
 		}
 		return isbn.compareTo(o.isbn);
 	}
-	
+
 	public void addReview(Customer customer, int mark) {
 		this.bookReview.addReview(customer, mark);
 	}
 	
 	public abstract BookTypes getType();
+	
+	public abstract BookRepository getRepository();
 	
 }

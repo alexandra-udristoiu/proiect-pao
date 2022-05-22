@@ -1,12 +1,13 @@
 package products;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import person.Customer;
 
 public class BookReview {
 	
-	private HashMap<Customer, Integer> reviews;
+	private Map<Customer, Integer> reviews;
 
 	public BookReview() {
 		this.reviews = new HashMap<>();

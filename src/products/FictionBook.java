@@ -1,25 +1,29 @@
 package products;
 
 import person.Author;
+import repository.BookRepository;
+import repository.FictionBookRepository;
 
 public class FictionBook extends Book {
 	
 	private String genre;
 	
-	public FictionBook(String title, Author author, String isbn, int pages, float price, int numberInStock, String genre) {
-		super(title, author, isbn, pages, price, numberInStock);
+	public FictionBook(String title, Author author, String isbn, int pages, float price, int productsInStock, String genre) {
+		super(title, author, isbn, pages, price, productsInStock);
 		this.genre = genre;
 	}
-
+	
 	@Override
-	public void printInformation() {
-		System.out.println("Fiction Book " + this.title);
-		System.out.println(this.author.getFirstName() + " " + this.author.getLastName());
-		System.out.println("Genre: " + this.genre);
-		System.out.println("Number of pages: " + this.numberOfPages);
-		System.out.println("ISBN: " + this.isbn);
-		System.out.println("Price: " + this.getCurrentPrice());
-		System.out.println("Average rating: " + this.bookReview.getAverage());
+	public String toString() {
+		return new StringBuilder()
+				.append("Fiction Book " + this.title + "\n")
+				.append("Author: " + this.author.getFirstName() + " " + this.author.getLastName() + "\n")
+				.append("Genre: " + this.genre + "\n")
+				.append("Number of pages: " + this.numberOfPages + "\n")
+				.append("ISBN: " + this.isbn + "\n")
+				.append("Price: " + this.getCurrentPrice())
+				.append("Average rating: " + this.bookReview.getAverage())
+				.toString();
 	}
 
 	@Override
@@ -33,6 +37,11 @@ public class FictionBook extends Book {
 
 	public String getGenre() {
 		return genre;
+	}
+
+	@Override
+	public BookRepository getRepository() {
+		return FictionBookRepository.getInstance();
 	}
 
 }

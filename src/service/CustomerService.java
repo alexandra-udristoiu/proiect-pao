@@ -3,8 +3,11 @@ package service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
+import entity.CustomerEntity;
 import exception.DuplicateIdException;
 import exception.WrongInputException;
 import order.Order;
@@ -12,12 +15,14 @@ import person.Customer;
 import products.Book;
 import products.Product;
 import products.StationeryProduct;
+import repository.CustomerRepository;
+import repository.StationeryProductRepository;
 
 public class CustomerService implements Service {
 
 	private static CustomerService instance = null;
 	
-	private HashMap<String, Customer> customers;
+	private Map<String, Customer> customers;
 	
 	private Scanner scanner;
 	
@@ -46,9 +51,12 @@ public class CustomerService implements Service {
 		System.out.println("Phone number:");
 		String phoneNumber = scanner.next();
 		System.out.println("Address:");
-		String address = scanner.next();
+		scanner.nextLine();
+		String address = scanner.nextLine();
 		Customer customer = new Customer(lastName, firstName, address, email, phoneNumber);
 		customers.put(email, customer);
+		
+		CustomerRepository.getInstance().add(new CustomerEntity(email, lastName, firstName, address, phoneNumber));
 	}
 	
 	private Customer getValidatedCustomer() throws WrongInputException {
@@ -69,11 +77,14 @@ public class CustomerService implements Service {
 		System.out.println("Phone number:");
 		String phoneNumber = scanner.next();
 		System.out.println("Address:");
-		String address = scanner.next();
+		scanner.nextLine();
+		String address = scanner.nextLine();
 		customer.setLastName(lastName);
 		customer.setFirstName(firstName);
 		customer.setAddress(address);
 		customer.setPhoneNumber(phoneNumber);
+		
+		CustomerRepository.getInstance().update(new CustomerEntity(customer.getEmail(), lastName, firstName, address, phoneNumber));
 	}
 	
 	private ArrayList<Product> getOrderProducts() throws WrongInputException {
@@ -115,17 +126,34 @@ public class CustomerService implements Service {
 		}
 		System.out.println("Total price: " + order.getPrice());
 		order.decreaseStock();
+		for (Product product : products) {
+			if (product instanceof StationeryProduct) {
+				StationeryProduct stationeryProduct = (StationeryProduct) product;
+				StationeryProductRepository.getInstance().updateStock(stationeryProduct.getId(), stationeryProduct.getProductsInStock());
+			}
+			else {
+				Book book = (Book) product;
+				book.getRepository().updateStock(book.getIsbn(), book.getProductsInStock());
+			}
+		}
 		customer.addOrder(order);
 	}
 	
 	public void printCustomerInformation() throws WrongInputException {
 		Customer customer = getValidatedCustomer();
-		customer.printInformation();
+		System.out.println(customer);
 	}
 	
 	public void printCustomerReaderProfile() throws WrongInputException {
 		Customer customer = getValidatedCustomer();
-		customer.printReaderProfile();
+		Set<Book> boughtBooks = customer.getBoughtBooks();
+		int pagesSum = 0;
+		for (Book book : boughtBooks) {
+			System.out.println(book);
+			pagesSum += book.getNumberOfPages();
+		}
+		System.out.println("Total number of books " + boughtBooks.size());
+		System.out.println("Total number of pages " + pagesSum);
 	}
 	
 	public void addReview() throws WrongInputException {
@@ -148,6 +176,8 @@ public class CustomerService implements Service {
 			throw new WrongInputException("Customer does not exist");
 		}
 		customers.remove(email);
+		
+		CustomerRepository.getInstance().delete(email);
 	}
 
 	@Override
@@ -241,6 +271,15 @@ public class CustomerService implements Service {
 			strings.add(customer.getLastName() + "," + customer.getFirstName() + "," + customer.getAddress() + "," + customer.getEmail() + "," + customer.getPhoneNumber());
 		}
 		return strings;
+	}
+
+	@Override
+	public void getFromDatabase() {
+		List<CustomerEntity> customerEntities = CustomerRepository.getInstance().getAll();
+		for (CustomerEntity entity : customerEntities) {
+			Customer customer = new Customer(entity.getLastName(), entity.getFirstName(), entity.getAddress(), entity.getEmail(), entity.getPhoneNumber());
+			customers.put(customer.getEmail(), customer);
+		}
 	}
 
 }

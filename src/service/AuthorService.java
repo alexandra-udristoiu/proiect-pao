@@ -3,18 +3,21 @@ package service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
+import entity.AuthorEntity;
 import exception.DuplicateIdException;
 import exception.WrongInputException;
 import person.Author;
 import products.Book;
+import repository.AuthorRepository;
 
 public class AuthorService implements Service {
 	
 	private static AuthorService instance = null;
 	
-	private HashMap<Integer, Author> authors;
+	private Map<Integer, Author> authors;
 	
 	private Scanner scanner;
 	
@@ -42,6 +45,8 @@ public class AuthorService implements Service {
 		String firstName = scanner.next();
 		Author author = new Author(lastName, firstName, id);
 		authors.put(id, author);
+		
+		AuthorRepository.getInstance().add(new AuthorEntity(id, lastName, firstName));
 	}
 	
 	public Author getAuthorById(int id) {
@@ -49,8 +54,8 @@ public class AuthorService implements Service {
 	}
 	
 	public void printAuthors() {
-		for (Author a : authors.values()) {
-			a.printInformation();
+		for (Author author : authors.values()) {
+			System.out.println(author);
 		}
 	}
 	
@@ -60,8 +65,11 @@ public class AuthorService implements Service {
 		if (!authors.containsKey(id)) {
 			throw new WrongInputException("Author does not exist");
 		}
-		authors.get(id).printInformation();
-		authors.get(id).printBooksByAuthor();
+		Author author = authors.get(id);
+		System.out.println(author);
+		for (Book book : author.getBooks()) {
+			System.out.println(book);
+		}
 	}
 	
 	public void deleteAuthor() throws WrongInputException {
@@ -74,6 +82,8 @@ public class AuthorService implements Service {
 		for (Book book : author.getBooks()) {
 			BookService.getInstance().deleteBook(book.getIsbn());
 		}
+		
+		AuthorRepository.getInstance().delete(id);
 	}
 	
 	public void editAuthor() throws WrongInputException {
@@ -89,6 +99,8 @@ public class AuthorService implements Service {
 		String firstName = scanner.next();
 		author.setLastName(lastName);
 		author.setFirstName(firstName);
+		
+		AuthorRepository.getInstance().update(new AuthorEntity(id, lastName, firstName));
 	}
 
 	@Override
@@ -160,6 +172,16 @@ public class AuthorService implements Service {
 			strings.add(author.getLastName() + "," + author.getFirstName() + "," + Integer.toString(author.getId()));
 		}
 		return strings;
+	}
+
+	@Override
+	public void getFromDatabase() {
+		List<AuthorEntity> authorEntities = AuthorRepository.getInstance().getAll();
+		for (AuthorEntity entity : authorEntities) {
+			Author author = new Author(entity.getLastName(), entity.getFirstName(), entity.getId());
+			authors.put(author.getId(), author);
+		}
+		
 	}
 
 }

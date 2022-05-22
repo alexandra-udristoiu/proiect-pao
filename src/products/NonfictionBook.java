@@ -1,26 +1,30 @@
 package products;
 
 import person.Author;
+import repository.BookRepository;
+import repository.NonfictionBookRepository;
 
 public class NonfictionBook extends Book {
 	
 	private String domain;
 
-	public NonfictionBook(String title, Author author, String isbn, int pages, float price, int numberInStock,
+	public NonfictionBook(String title, Author author, String isbn, int pages, float price, int productsInStock,
 			String domain) {
-		super(title, author, isbn, pages, price, numberInStock);
+		super(title, author, isbn, pages, price, productsInStock);
 		this.domain = domain;
 	}
 	
 	@Override
-	public void printInformation() {
-		System.out.println("Nonfiction Book " + this.title);
-		System.out.println(this.author.getFirstName() + " " + this.author.getLastName());
-		System.out.println("Domain: " + this.domain);
-		System.out.println("Number of pages: " + this.numberOfPages);
-		System.out.println("ISBN: " + this.isbn);
-		System.out.println("Price: " + this.getCurrentPrice());
-		System.out.println("Average rating: " + this.bookReview.getAverage());
+	public String toString() {
+		return new StringBuilder()
+				.append("Fiction Book " + this.title + "\n")
+				.append("Author: " + this.author.getFirstName() + " " + this.author.getLastName() + "\n")
+				.append("Domain: " + this.domain + "\n")
+				.append("Number of pages: " + this.numberOfPages + "\n")
+				.append("ISBN: " + this.isbn + "\n")
+				.append("Price: " + this.getCurrentPrice())
+				.append("Average rating: " + this.bookReview.getAverage())
+				.toString();
 	}
 
 	public String getDomain() {
@@ -34,5 +38,10 @@ public class NonfictionBook extends Book {
 	@Override
 	public BookTypes getType() {
 		return BookTypes.NONFICTION;
+	}
+
+	@Override
+	public BookRepository getRepository() {
+		return NonfictionBookRepository.getInstance();
 	}
 }

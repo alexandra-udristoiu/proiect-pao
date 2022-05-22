@@ -7,13 +7,17 @@ import java.util.Scanner;
 public class Main {
 
 	public static void main(String[] args) {
-		CsvService.getInstance().read();
+		//CsvService.getInstance().read();
 		
 		List<Service> services = new ArrayList<>();
 		services.add(AuthorService.getInstance());
 		services.add(BookService.getInstance());
 		services.add(CustomerService.getInstance());
 		services.add(StationeryProductService.getInstance());
+		
+		for (Service service : services) {
+			service.getFromDatabase();
+		}
 		
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("1 - Author service");
@@ -32,7 +36,7 @@ public class Main {
 		}
 		scanner.close();
 		
-		CsvService.getInstance().write();
+		//CsvService.getInstance().write();
 	}
 
 }

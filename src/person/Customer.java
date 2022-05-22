@@ -38,24 +38,16 @@ public class Customer extends Person {
 			}
 		}
 	}
-	
-	public void printReaderProfile() {
-		int pagesSum = 0;
-		for (Book b : boughtBooks) {
-			b.printInformation();
-			pagesSum += b.getNumberOfPages();
-		}
-		System.out.println("Total number of books " + boughtBooks.size());
-		System.out.println("Total number of pages " + pagesSum);
-	}
 
 	@Override
-	public void printInformation() {
-		System.out.println("Customer information");
-		System.out.println("Email: " + this.email);
-		System.out.println("Name: " + this.lastName + " " + this.firstName);
-		System.out.println("Address " + this.address);
-		System.out.println("Phone number " + this.phoneNumber);
+	public String toString() {
+		return new StringBuilder()
+				.append("Customer information\n")
+				.append("Email: " + this.email + "\n")
+				.append("Name: " + this.lastName + " " + this.firstName + "\n")
+				.append("Address " + this.address + "\n")
+				.append("Phone number " + this.phoneNumber)
+				.toString();
 	}
 
 	public void setAddress(String address) {

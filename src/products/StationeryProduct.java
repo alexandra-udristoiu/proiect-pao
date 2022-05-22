@@ -61,11 +61,13 @@ public class StationeryProduct implements Product {
 		productsInStock += number;
 	}
 	
-	public void printInformarion() {
-		System.out.println("Stationary product " + this.id + " " + this.name);
-		System.out.println("Price " + this.price);
-		System.out.println("Number of items " + this.numberOfItems);
-		
+	@Override
+	public String toString() {
+		return new StringBuilder()
+				.append("Stationary product " + this.id + " " + this.name + "\n")
+				.append("Price " + this.price + "\n")
+				.append("Number of items " + this.numberOfItems)
+				.toString();
 	}
 
 	public String getName() {

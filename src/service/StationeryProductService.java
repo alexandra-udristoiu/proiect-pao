@@ -3,17 +3,20 @@ package service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
+import entity.StationeryProductEntity;
 import exception.DuplicateIdException;
 import exception.WrongInputException;
 import products.StationeryProduct;
+import repository.StationeryProductRepository;
 
 public class StationeryProductService implements Service {
 	
 	private static StationeryProductService instance = null;
 	
-	private HashMap<Integer, StationeryProduct> stationeryProducts;
+	private Map<Integer, StationeryProduct> stationeryProducts;
 	
 	private Scanner scanner;
 	
@@ -40,13 +43,18 @@ public class StationeryProductService implements Service {
 			throw new DuplicateIdException();
 		}
 		System.out.println("Name:");
-		String name = scanner.next();
+		scanner.nextLine();
+		String name = scanner.nextLine();
 		System.out.println("Price:");
 		float price = scanner.nextFloat();
 		System.out.println("Number of items:");
 		int numberOfItems = scanner.nextInt();
-		StationeryProduct stationeryProduct = new StationeryProduct(name, price, 0, numberOfItems, id);
+		System.out.println("Products in stock:");
+		int productsInStock = scanner.nextInt();
+		StationeryProduct stationeryProduct = new StationeryProduct(name, price, productsInStock, numberOfItems, id);
 		stationeryProducts.put(id, stationeryProduct);
+		
+		StationeryProductRepository.getInstance().add(new StationeryProductEntity(id, name, price, 0, numberOfItems));
 	}
 	
 	public void deleteStationeryProduct() throws WrongInputException {
@@ -56,11 +64,13 @@ public class StationeryProductService implements Service {
 			throw new WrongInputException("Stationery product does not exist");
 		}
 		stationeryProducts.remove(id);
+		
+		StationeryProductRepository.getInstance().delete(id);
 	}
 	
 	public void printStationeryProducts() {
-		for (StationeryProduct sp : stationeryProducts.values()) {
-			sp.printInformarion();
+		for (StationeryProduct stationeryProduct : stationeryProducts.values()) {
+			System.out.println(stationeryProduct);
 		}
 	}
 	
@@ -72,7 +82,10 @@ public class StationeryProductService implements Service {
 		}
 		System.out.println("Number of products added:");
 		int number = scanner.nextInt();
-		stationeryProducts.get(id).addInStock(number);
+		StationeryProduct stationeryProduct = stationeryProducts.get(id);
+		stationeryProduct.addInStock(number);
+		
+		StationeryProductRepository.getInstance().updateStock(id, stationeryProduct.getProductsInStock());
 	}
 	
 	public void editProduct() throws WrongInputException {
@@ -83,7 +96,8 @@ public class StationeryProductService implements Service {
 			throw new WrongInputException("Stationery product does not exist");
 		}
 		System.out.println("Name:");
-		String name = scanner.next();
+		scanner.nextLine();
+		String name = scanner.nextLine();
 		System.out.println("Price:");
 		float price = scanner.nextFloat();
 		System.out.println("Products in stock:");
@@ -94,6 +108,8 @@ public class StationeryProductService implements Service {
 		stationery.setPrice(price);
 		stationery.setProductsInStock(productsInStock);
 		stationery.setNumberOfItems(numberOfItems);
+		
+		StationeryProductRepository.getInstance().update(new StationeryProductEntity(id, name, price, productsInStock, numberOfItems));
 	}
 
 	@Override
@@ -112,16 +128,16 @@ public class StationeryProductService implements Service {
 		case 1:
 			try {
 				addStationeryProduct();
-			} catch (DuplicateIdException e1) {
-				e1.printStackTrace();
+			} catch (DuplicateIdException e) {
+				e.printStackTrace();
 			}
 			AuditService.getInstance().addAction("Add stationery product");
 			break;
 		case 2:
 			try {
 				deleteStationeryProduct();
-			} catch (WrongInputException e1) {
-				e1.printStackTrace();
+			} catch (WrongInputException e) {
+				e.printStackTrace();
 			}
 			AuditService.getInstance().addAction("Delete stationery product");
 			break;
@@ -169,6 +185,16 @@ public class StationeryProductService implements Service {
 			strings.add(current);
 		}
 		return strings;
+	}
+
+	@Override
+	public void getFromDatabase() {
+		List<StationeryProductEntity> entities = StationeryProductRepository.getInstance().getAll();
+		for (StationeryProductEntity entity : entities) {
+			StationeryProduct stationeryProduct = new StationeryProduct(entity.getName(), entity.getPrice(), entity.getProductsInStock(), entity.getNumberOfItems(), 
+					entity.getId());
+			stationeryProducts.put(stationeryProduct.getId(), stationeryProduct);
+		}
 	}
 
 }
