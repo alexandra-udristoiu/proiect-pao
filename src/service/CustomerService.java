@@ -90,9 +90,10 @@ public class CustomerService implements Service {
 	private ArrayList<Product> getOrderProducts() throws WrongInputException {
 		ArrayList<Product> products = new ArrayList<>();
 		while (true) {
-			System.out.println("Next product:");
+			System.out.println("Next product: (book for books, stationery for stationery products)");
 			String type = scanner.next();
 			if (type.equals("book")) {
+				System.out.println("ISBN:");
 				String isbn = scanner.next();
 				Book book = BookService.getInstance().getBookById(isbn);
 				if (book == null) {
@@ -102,6 +103,7 @@ public class CustomerService implements Service {
 			}
 			else {
 				if (type.equals("stationery")) {
+					System.out.println("ID:");
 					int id = scanner.nextInt();
 					StationeryProduct stationery = StationeryProductService.getInstance().getStationeryProductById(id);
 					if (stationery == null) {

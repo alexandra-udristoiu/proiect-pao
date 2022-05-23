@@ -42,7 +42,7 @@ public class TextBook extends Book {
 				.append("Grade: " + this.grade + "\n")
 				.append("Number of pages: " + this.numberOfPages + "\n")
 				.append("ISBN: " + this.isbn + "\n")
-				.append("Price: " + this.getCurrentPrice())
+				.append("Price: " + this.getCurrentPrice() + "\n")
 				.append("Average rating: " + this.bookReview.getAverage())
 				.toString();
 	}
